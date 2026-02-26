@@ -1,4 +1,5 @@
 package com.renault.garage.service.impl;
+
 import com.renault.garage.dto.vehicle.VehicleCreateRequest;
 import com.renault.garage.dto.vehicle.VehiclePatchRequest;
 import com.renault.garage.entity.FuelType;
@@ -7,6 +8,7 @@ import com.renault.garage.entity.VehicleEntity;
 import com.renault.garage.entity.VehicleType;
 import com.renault.garage.exception.NotFoundException;
 import com.renault.garage.exception.VehicleQuotaExceededException;
+import com.renault.garage.messaging.producer.VehicleEventProducer;
 import com.renault.garage.repository.GarageRepository;
 import com.renault.garage.repository.VehicleRepository;
 import org.junit.jupiter.api.Test;
@@ -18,11 +20,18 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+
 @ExtendWith(MockitoExtension.class)
 class VehicleServiceImplTest {
-    @Mock VehicleRepository vehicleRepository;
-    @Mock GarageRepository garageRepository;
-    @InjectMocks VehicleServiceImpl service;
+    @Mock
+    VehicleRepository vehicleRepository;
+    @Mock
+    GarageRepository garageRepository;
+    @InjectMocks
+    VehicleServiceImpl service;
+    @Mock
+    private VehicleEventProducer vehicleEventProducer;
+
     @Test
     void create_shouldThrowNotFound_whenGarageDoesNotExist() {
         long garageId = 10L;
@@ -32,6 +41,7 @@ class VehicleServiceImplTest {
         assertThrows(NotFoundException.class, () -> service.create(req));
         verify(vehicleRepository, never()).save(any());
     }
+
     @Test
     void create_shouldThrowQuotaExceeded_whenGarageAlreadyHas50Vehicles() {
         long garageId = 10L;
@@ -43,6 +53,7 @@ class VehicleServiceImplTest {
         assertThrows(VehicleQuotaExceededException.class, () -> service.create(req));
         verify(vehicleRepository, never()).save(any());
     }
+
     @Test
     void create_shouldSave_whenQuotaNotReached() {
         long garageId = 10L;
@@ -56,6 +67,7 @@ class VehicleServiceImplTest {
         assertNotNull(res);
         verify(vehicleRepository).save(any(VehicleEntity.class));
     }
+
     @Test
     void patch_shouldUpdateOnlyProvidedFields() {
         long garageId = 1L;
@@ -78,6 +90,7 @@ class VehicleServiceImplTest {
         verify(vehicleRepository).save(existing);
         assertNotNull(res);
     }
+
     @Test
     void delete_shouldThrowNotFound_whenVehicleNotInGarage() {
         long garageId = 1L;
@@ -86,6 +99,7 @@ class VehicleServiceImplTest {
         assertThrows(NotFoundException.class, () -> service.delete(garageId, vehicleId));
         verify(vehicleRepository, never()).delete(any());
     }
+
     @Test
     void delete_shouldDelete_whenVehicleExistsInGarage() {
         long garageId = 1L;

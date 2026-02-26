@@ -6,14 +6,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+
 import java.math.BigDecimal;
 import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 class GarageRepositoryIT {
     @Autowired
     private GarageRepository garageRepository;
+
     @Test
     void search_shouldFilterByVehicleType_only() {
         // given
@@ -73,6 +76,7 @@ class GarageRepositoryIT {
                 .name("GPS")
                 .description("gps desc")
                 .price(BigDecimal.valueOf(100))
+                .type(AccessoryType.ELECTRONICS)
                 .vehicle(v1)
                 .build();
 
@@ -120,6 +124,7 @@ class GarageRepositoryIT {
                 .name("GPS")
                 .description("gps")
                 .price(BigDecimal.valueOf(100))
+                .type(AccessoryType.ELECTRONICS)
                 .vehicle(v1)
                 .build();
 

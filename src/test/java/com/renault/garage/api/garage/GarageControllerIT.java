@@ -2,6 +2,7 @@ package com.renault.garage.api.garage;
 
 
 import com.renault.garage.entity.*;
+import com.renault.garage.messaging.producer.VehicleEventProducer;
 import com.renault.garage.repository.GarageRepository;
 import com.renault.garage.repository.VehicleRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -9,28 +10,29 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
+
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
-
  * IT (Integration Test) sur l'API /api/garages/search
-
+ * <p>
  * - filtre par vehicleType
-
+ * <p>
  * - filtre par accessoryName (case-insensitive)
-
+ * <p>
  * - filtre par les deux
-
+ * <p>
  * - pagination
-
  */
 
 @SpringBootTest
@@ -38,12 +40,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @Transactional
 class GarageControllerIT {
-    @Autowired MockMvc mockMvc;
-    @Autowired GarageRepository garageRepository;
-    @Autowired VehicleRepository vehicleRepository;
+    @Autowired
+    MockMvc mockMvc;
+    @Autowired
+    GarageRepository garageRepository;
+    @Autowired
+    VehicleRepository vehicleRepository;
+    @MockBean
+    private VehicleEventProducer vehicleEventProducer;
+    @MockBean
+    private org.springframework.kafka.core.KafkaTemplate<String, com.renault.garage.messaging.event.VehicleCreatedEvent> kafkaTemplate;
+    @MockBean
+
+    private org.springframework.kafka.core.ProducerFactory<String, Object> producerFactory;
+
     private GarageEntity gCar;
     private GarageEntity gTruck;
     private GarageEntity gVan;
+
     @BeforeEach
     void setup() {
         vehicleRepository.deleteAll();
@@ -195,7 +209,7 @@ class GarageControllerIT {
                 .name("GPS")
                 .description("GPS intégré")
                 .type(AccessoryType.ELECTRONICS)
-                .price(BigDecimal.valueOf(1500))   // ✅ OBLIGATOIRE
+                .price(BigDecimal.valueOf(1500))   // OBLIGATOIRE
                 .vehicle(v)
                 .build();
 
